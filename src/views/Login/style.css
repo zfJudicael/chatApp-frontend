@@ -1,0 +1,69 @@
+.login {
+    display: flex;
+    justify-content: center;
+}
+
+.login form {
+    background-color: rgb(245, 245, 245);
+    padding: 20px;
+}
+
+.login form h3{
+    text-align: center;
+}
+
+.login form hr{
+    margin-bottom: 20px;
+}
+
+.login form .input{
+    display: flex;
+    flex-direction: column;
+    gap: 1px;
+    margin-bottom: 1rem;
+}
+
+.login form .input .inlineMessage{
+    width: max-content;
+    padding: 5px;
+    margin: 1px 0 1px 0;
+}
+
+.login form .input .inlineMessage .p-inline-message-text{
+    font-size: small;
+}
+
+.login form .input .password{
+    width: max-content;
+}
+
+.login form .button{
+    overflow-y: auto;
+    margin-bottom: 15px;
+}
+
+.login form .button .confirmer{
+    width: 75%;
+    float: left;
+}
+
+.login form .button .cancel{
+    width: 25%;
+    float: left;
+}
+
+.login form .button .cancel:hover{
+    border: 1px solid #3B82F6;
+}
+
+.login form .question{
+    display: flex;
+    justify-content: center;
+}
+
+@media only screen and (min-width: 768px){
+    .login form{
+        border : 1px solid rgb(168, 168, 168);
+        border-radius: 5px;
+    }
+}

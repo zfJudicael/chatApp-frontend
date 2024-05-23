@@ -1,0 +1,69 @@
+.register {
+    display: flex;
+    justify-content: center;
+}
+
+.register form {
+    background-color: rgb(245, 245, 245);
+    padding: 20px;
+}
+
+.register form h3{
+    text-align: center;
+}
+
+.register form hr{
+    margin-bottom: 20px;
+}
+
+.register form .input{
+    display: flex;
+    flex-direction: column;
+    gap: 1px;
+    margin-bottom: 1rem;
+}
+
+.register form .input .inlineMessage{
+    width: max-content;
+    padding: 5px;
+    margin: 1px 0 1px 0;
+}
+
+.register form .input .inlineMessage .p-inline-message-text{
+    font-size: small;
+}
+
+.register form .input .password{
+    width: max-content;
+}
+
+.register form .button{
+    overflow-y: auto;
+    margin-bottom: 15px;
+}
+
+.register form .button .confirmer{
+    width: 75%;
+    float: left;
+}
+
+.register form .button .cancel{
+    width: 25%;
+    float: left;
+}
+
+.register form .button .cancel:hover{
+    border: 1px solid #3B82F6;
+}
+
+.register form .question{
+    display: flex;
+    justify-content: center;
+}
+
+@media only screen and (min-width: 768px){
+    .register form{
+        border : 1px solid rgb(168, 168, 168);
+        border-radius: 5px;
+    }
+}
