@@ -9,13 +9,12 @@ import { onMounted } from 'vue'
 import { useAuthStore } from '@/stores/auth.store';
 import Toast from 'primevue/toast';
 
-const authStore = useAuthStore()
 
-onMounted(()=>{
-
-  authStore.init()
-           .then(()=>{
-            authStore.redirect()
-           })
+onMounted(async ()=>{
+  useAuthStore()
+    .init()
+    .then(()=>{
+      useAuthStore().redirect()
+    })
 })
 </script>

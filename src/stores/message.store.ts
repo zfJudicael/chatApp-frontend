@@ -1,5 +1,6 @@
 import { defineStore } from "pinia";
 import { socket } from '../socket'
+import type { IMessage } from "@/models/message.model";
 
 export const useMessageStore = defineStore('messageStore', {
     state: ()=>{
@@ -8,9 +9,8 @@ export const useMessageStore = defineStore('messageStore', {
         }
     },
     actions: {
-        sendMessage(msg: string) {
-            socket.emit('sendMessage', msg)
+        sendMessage(message: IMessage) {
+            socket.emit('sendMessage', message)
         }
     }
-
 })

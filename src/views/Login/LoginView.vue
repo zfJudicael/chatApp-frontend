@@ -116,10 +116,10 @@ const onSubmit = async (e: Event)=>{
     if(formValidation()){
         await AuthService.singIn(user)
             .then(async (response)=>{
-                console.log(response)
                 localStorage.setItem('chatAppToken', response.token);
                 toast.add({ severity: 'success', summary: 'Connexion réussie', life: 10000 });
                 await useAuthStore().init()
+                useAuthStore().redirect()
             })
             .catch((error)=>{
                 localStorage.removeItem('chatAppToken');

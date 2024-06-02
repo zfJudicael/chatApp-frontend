@@ -1,5 +1,5 @@
 import { defineStore } from 'pinia';
-import { reactive } from 'vue';
+import { ref } from 'vue';
 import router from '@/router';
 import { User } from '@/models/user.model';
 import AuthService from '@/services/auth.services';
@@ -7,9 +7,7 @@ import AuthService from '@/services/auth.services';
 export const useAuthStore = defineStore('authStore', {
   state: () => ({
     token: "",
-    user: reactive<User>({
-      pseudo: ''
-    })
+    user: ref<User>()
   }),
   actions: {
     async init() {
@@ -23,11 +21,11 @@ export const useAuthStore = defineStore('authStore', {
         localStorage.removeItem('chatAppToken')
       }
     },
-    redirect() {
-      router.isReady()
+    async redirect() {
+      await router.isReady()
         .then(() => {
           if (this.user) {
-            router.push({name: 'home'})
+            router.push({name: 'welcome'})
           }else{
             if (router.currentRoute.value.name === 'register') {
               return;
@@ -36,6 +34,15 @@ export const useAuthStore = defineStore('authStore', {
             }
           }
         })
+    }
+  },
+  getters: {
+    getPseudo(state){
+      return state.user?.pseudo
+    },
+
+    getEmail(state){
+      return state.user?.email
     }
   }
 })

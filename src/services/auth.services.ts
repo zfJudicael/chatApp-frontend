@@ -14,6 +14,6 @@ export default class AuthService
 
     public static async getCurrentUser()
     {
-        return (await AuthApi.getMe()).data.user
+        return (await AuthApi.getMe()).data.user;
     }
 }
