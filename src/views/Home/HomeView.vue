@@ -1,31 +1,87 @@
 <template>
     <div class="home">
-        <SideBar class="nav"/>
+        <SideBar class="nav" v-model="selectedConversationId"/>
         <div class="content">
-            <RouterView />
+            <template v-if="selectedConversationId">
+                <div class="topNav">
+                    <Button type="button" label="Retour" @click="selectedConversationId = ''" severity="info" raised/>
+                    <Button type="button" @click="visible=true">Inviter</Button>
+                </div>
+                <div class="messagesList">
+                    <Message :isRight="isMessageMine(message)" v-for="message in messagesList"/>
+                </div>
+                <form @submit.prevent="sendMessage">
+                    <textarea v-model="newMessage.value" placeholder="Tapez votre message ici..." rows="3" id="text"></textarea>
+                    <Button type="submit" severity="info" raised>Envoyer <span class="pi pi-send"></span></Button>
+                </form>
+            </template>
+            <template v-else>
+                Welcome
+            </template>
         </div>
     </div>
+    <Dialog v-model:visible="visible" modal header="Invitation pour la conversation" :style="{ width: '25rem' }" :draggable="false">
+        <small>Copiez et partagez cette texte(Validité 24heures)</small>
+        <Textarea v-model="conversationToken" disabled autoResize cols="30"/>
+        <Button @click="copyToClipboard">Copier</Button>
+    </Dialog>
 </template>
 
 <script setup lang="ts">
-import{ onMounted, ref } from 'vue';
+import{ ref, reactive, watch } from 'vue';
 import SideBar from '@/components/SideBar.vue';
-import { RouterView } from 'vue-router';
-import { socket } from '@/socket';
 import type { Conversation } from '@/models/conversation.model';
+import Message from '@/components/Message.vue';
+import { useConversationsStore } from '@/stores/conversation.store';
+import { useAuthStore } from '@/stores/auth.store';
+import type { IMessage } from '@/models/message.model';
+import Button from 'primevue/button';
+import Dialog from 'primevue/dialog';
+import Textarea from 'primevue/textarea';
 
-onMounted(()=>{
-    
+const visible = ref(false)
+const selectedConversationId = ref('')
+const newMessage: IMessage = reactive({
+    value: ''
+})
+const conversationsStore = useConversationsStore()
+const messagesList = ref<IMessage[]>([])
+const conversationToken = ref('')
+
+const loadMessages = ()=>{
+    messagesList.value = []
+    if(selectedConversationId.value) {
+        let { messages, token } = conversationsStore.getConversation(selectedConversationId.value)
+        messagesList.value = messages
+        if(token) conversationToken.value = token
+    }
+}
+
+watch(selectedConversationId, (newValue)=>{
+    newMessage.value = ''
+    conversationToken.value = ''
+    loadMessages()
 })
 
-// //////////////////////////////////////////
-// const messageStore = useMessageStore()
-// const message = ref<string>('')
+const sendMessage = async ()=>{
+    if(newMessage.value && useAuthStore().user?._id){
+        newMessage.from = useAuthStore().user?._id
+        newMessage.to = selectedConversationId.value
+        try {
+            await conversationsStore.sendMessage(newMessage)
+        } catch (error) {
+            console.log(error)
+        }
+    }
+}
 
-// const sendMessage = ()=>{
-//     console.log(message.value)
-//     // messageStore.sendMessage(message.value)
-// }
+const isMessageMine = (message: IMessage)=>{
+    return (message.from === useAuthStore().user?._id)
+}
+
+const copyToClipboard = ()=>{
+    navigator.clipboard.writeText(conversationToken.value)
+}
 
 </script>
 
@@ -45,5 +101,40 @@ onMounted(()=>{
     padding: 20px 20px 0px 20px;
     display: grid;
     height: 100vh;
+}
+
+.home .content .topNav{
+    grid-row: 1;
+    border-bottom: 1px solid gray;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.home .content .messagesList{
+    grid-row: 2/10;
+    overflow-y: scroll;
+}
+
+.home .content form{
+    grid-row: 11/12;
+    display: flex;
+    column-gap: 5px;
+    align-items: center;
+}
+
+.home .content form textarea{
+    resize: none;
+    flex-grow: 10;
+    border-radius: 10px;
+    padding: 10px;
+}
+
+.home .content form button{
+    flex-grow: 1;
+    display: flex;
+    flex-wrap: nowrap;
+    justify-content: center;
+    column-gap: 5px;
 }
 </style>

@@ -11,7 +11,11 @@ export default class ConversationApi{
         return chatAppAPI.get('/conversation/list')
     }
 
-    public static getAll() : Promise<{data: IApiConversationResponse}>{
-        return chatAppAPI.get('/conversation')
+    public static postJoin(conversationToken: string) : Promise<{data: IApiConversationResponse}>{
+        return chatAppAPI.post('/conversation/join', { conversationToken })
+    }
+
+    public static getConversation(conversationId: string) : Promise<{data: IApiConversationResponse}>{
+        return chatAppAPI.get(`/conversation/${conversationId}`)
     }
 }

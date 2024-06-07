@@ -3,6 +3,7 @@ import { ref } from 'vue';
 import router from '@/router';
 import { User } from '@/models/user.model';
 import AuthService from '@/services/auth.services';
+import { socket } from '@/socket';
 
 export const useAuthStore = defineStore('authStore', {
   state: () => ({
@@ -16,6 +17,9 @@ export const useAuthStore = defineStore('authStore', {
         if(token){
           this.token = token;
           this.user = new User(await AuthService.getCurrentUser())
+          socket.connect()
+        }else{
+          throw new Error('There is no token')
         }
       } catch (err) {
         localStorage.removeItem('chatAppToken')

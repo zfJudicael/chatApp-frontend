@@ -22,11 +22,35 @@ export const useConversationsListStore = defineStore('conversationsListStore', {
       return new Promise<void>(async (resolve, reject)=>{
         try{
           const result = await ConversationService.create(conversation)
-          result.forEach((conversation)=> this.conversationList.push(new Conversation(conversation)))
+          this.conversationList.push(new Conversation(result))
           resolve()
         }catch(error){
           reject(error)
         }
+      })
+    },
+
+    joinConversation(conversationToken: string): Promise<void>{
+      return new Promise(async (resolve, reject)=>{
+        try {
+          const result = await ConversationService.joinConversation(conversationToken) 
+          resolve()       
+        } catch (error) {
+          reject(error)
+        }
+      })
+    },
+
+    join(token:string, userId: string){
+      return new Promise<void>(async (resolve, reject)=>{
+        socket.emit('joinConversation', token, userId, (error: any)=>{
+          if(error) {            
+            console.log(error)
+            reject(error) 
+          }else {
+            console.log('OKy')
+            resolve()}
+        })
       })
     }
   },

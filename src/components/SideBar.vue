@@ -12,9 +12,13 @@
             <span class="pi pi-plus-circle" style="font-size: 2.5rem;"></span>
             <p>Créer une nouvelle conversation</p>
         </div>
+        <div class="joinConversation" @click="joinConvVisible= true">
+            <span class="pi pi-plus-circle" style="font-size: 2.5rem;"></span>
+            <p>Joindre une conversation</p>
+        </div>
         <div class="conversationsList">
             <ConversationC v-for="conversation in conversationsListStore.getList" :conversation="conversation" 
-            @click="$router.push({name: 'conversationView', params: { '_id': conversation._id }})" />
+                @click="openConversation(conversation)"/>
         </div>
         <Dialog v-model:visible="visible" modal header="Création d'une nouvelle conversation" :style="{ width: '25rem' }" :draggable="false" @hide="()=>{
             newConversation.name = ''
@@ -33,6 +37,20 @@
                 <Button type="button" class="cancel" label="Annuler" severity="secondary" @click="visible = false"></Button>
             </div>
         </Dialog>
+
+        <Dialog v-model:visible="joinConvVisible" modal header="Joindre une conversation" :style="{ width: '25rem' }" :draggable="false" @hide="()=>{
+            conversationToken = ''
+            conversationTokenError = false
+        }">
+            <div id="DialogInput">
+                <Textarea name="conversationToken" v-model="conversationToken" autoResize cols="30" placeholder="Entrez la clé ici..." :invalid="conversationTokenError"/>
+                <InlineMessage class="inlineMessage" v-if="conversationTokenError">{{ conversationTokenErrorMessage }}</InlineMessage>
+            </div>
+            <div id="DialogButton">
+                <Button type="button" class="create" label="Joindre" @click="joinConversation"></Button>
+                <Button type="button" class="cancel" label="Annuler" severity="secondary" @click="joinConvVisible = false"></Button>
+            </div>
+        </Dialog>
     </div>
 </template>
 
@@ -46,17 +64,26 @@ import Button from 'primevue/button';
 import InlineMessage from 'primevue/inlinemessage';
 import { useToast } from 'primevue/usetoast';
 import ConversationC from './ConversationC.vue';
-import type { IConversation } from '@/models/conversation.model';
+import { Conversation, type IConversation } from '@/models/conversation.model';
 import { useConversationsListStore } from '@/stores/conversationsList.store';
-
+import { useConversationsStore } from '@/stores/conversation.store';
+import Textarea from 'primevue/textarea';
 
 const toast = useToast()
 const newConversation = reactive<IConversation>({
-    name: ''
+    name: '',
+    messages: []
 })
+const conversationToken = ref('')
+
+defineProps(['modelValue'])
+
+const emit = defineEmits(['update:modelValue'])
+
 const conversationsListStore = useConversationsListStore()
 
 const visible = ref(false)
+const joinConvVisible = ref(false)
 const authStore = useAuthStore()
 
 onMounted(async ()=>{
@@ -75,6 +102,18 @@ const handleConversationName = ()=>{
     return !conversationNameError.value
 }
 
+const conversationTokenError = ref(false)
+const conversationTokenErrorMessage = ref('')
+const handleConversationToken = ()=>{
+    if(conversationToken.value){
+        conversationTokenError.value = false
+    }else{
+        conversationTokenError.value = true
+        conversationTokenErrorMessage.value = 'Champ requise'
+    }
+    return !conversationTokenError.value
+}
+
 const createNewConversation = async ()=>{
     if(handleConversationName()){
         try {
@@ -91,6 +130,32 @@ const createNewConversation = async ()=>{
         visible.value = false;
     }
 }
+
+const joinConversation = async ()=>{
+    if(handleConversationToken()){
+        try {
+            if(authStore.user?._id){
+                console.log(conversationToken.value, authStore.user?._id)
+                await conversationsListStore.join(conversationToken.value, authStore.user?._id)
+                toast.add({ severity: 'success', detail: 'Vous avez pu joindre la conversation avec succès', life: 6000 });
+            }else{
+                await authStore.init()
+                authStore.redirect()
+            }
+        } catch (error) {
+            toast.add({ severity: 'error', summary: "Vous n'avez pas pu joindre la conversation", detail: "Peut être que la clé n'est pas valide ou expirée", life: 6000 });
+        }
+        visible.value = false;
+    }
+}
+
+const openConversation = async (conversation: Conversation)=>{
+    try {
+        await useConversationsStore().addConversation(conversation._id as string)
+    } catch (error) {}
+    emit('update:modelValue', conversation._id)
+}
+
 </script>
 
 <style>
@@ -116,7 +181,7 @@ const createNewConversation = async ()=>{
     margin: 0;
 }
 
-.sidebar .newConversation{
+.sidebar .newConversation, .sidebar .joinConversation{
     background-color: aliceblue;
     display: flex;
     align-items: center;
@@ -126,15 +191,15 @@ const createNewConversation = async ()=>{
     margin-bottom: 2px;
 }
 
-.sidebar .newConversation p{
+.sidebar .newConversation p, .sidebar .joinConversation p{
     margin: 0 5px;
 }
 
-.sidebar .newConversation:hover{
+.sidebar .newConversation:hover, .sidebar .joinConversation:hover{
     cursor: pointer;
 }
 
-.sidebar .newConversation p:hover{
+.sidebar .newConversation p:hover, .sidebar .joinConversation p:hover{
     text-decoration: underline;
 }
 

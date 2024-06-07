@@ -19,5 +19,5 @@ export interface IApiConversationListResponse extends IApiAuthResponse{
 }
 
 export interface IApiConversationResponse extends IApiResponse{
-    conversation: IConversation[]
+    conversation: IConversation
 }

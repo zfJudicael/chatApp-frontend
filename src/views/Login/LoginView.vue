@@ -118,8 +118,9 @@ const onSubmit = async (e: Event)=>{
             .then(async (response)=>{
                 localStorage.setItem('chatAppToken', response.token);
                 toast.add({ severity: 'success', summary: 'Connexion réussie', life: 10000 });
-                await useAuthStore().init()
-                useAuthStore().redirect()
+                await useAuthStore()
+                    .init()
+                    .then(()=> useAuthStore().redirect() )
             })
             .catch((error)=>{
                 localStorage.removeItem('chatAppToken');
