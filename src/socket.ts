@@ -10,10 +10,6 @@ socket.on('connect', ()=>{
     socket.emit('logIn', useAuthStore().user?._id)
 })
 
-socket.on('newMessage', ()=>{
-    console.log('new message')
-})
-
 // socket.on('disconnect', ()=>{
 //     console.log('Disconnected')
 // })

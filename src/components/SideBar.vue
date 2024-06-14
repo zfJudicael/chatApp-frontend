@@ -68,6 +68,7 @@ import { Conversation, type IConversation } from '@/models/conversation.model';
 import { useConversationsListStore } from '@/stores/conversationsList.store';
 import { useConversationsStore } from '@/stores/conversation.store';
 import Textarea from 'primevue/textarea';
+import { socket } from '@/socket';
 
 const toast = useToast()
 const newConversation = reactive<IConversation>({
@@ -145,7 +146,7 @@ const joinConversation = async ()=>{
         } catch (error) {
             toast.add({ severity: 'error', summary: "Vous n'avez pas pu joindre la conversation", detail: "Peut être que la clé n'est pas valide ou expirée", life: 6000 });
         }
-        visible.value = false;
+        joinConvVisible.value = false;
     }
 }
 

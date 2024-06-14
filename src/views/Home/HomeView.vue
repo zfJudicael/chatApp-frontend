@@ -8,7 +8,7 @@
                     <Button type="button" @click="visible=true">Inviter</Button>
                 </div>
                 <div class="messagesList">
-                    <Message :isRight="isMessageMine(message)" v-for="message in messagesList"/>
+                    <Message :isRight="isMessageMine(message)" v-for="message in messagesList" :message="new CMessage(message)"/>
                 </div>
                 <form @submit.prevent="sendMessage">
                     <textarea v-model="newMessage.value" placeholder="Tapez votre message ici..." rows="3" id="text"></textarea>
@@ -34,10 +34,11 @@ import type { Conversation } from '@/models/conversation.model';
 import Message from '@/components/Message.vue';
 import { useConversationsStore } from '@/stores/conversation.store';
 import { useAuthStore } from '@/stores/auth.store';
-import type { IMessage } from '@/models/message.model';
+import { CMessage, type IMessage } from '@/models/message.model';
 import Button from 'primevue/button';
 import Dialog from 'primevue/dialog';
 import Textarea from 'primevue/textarea';
+import { socket } from '@/socket';
 
 const visible = ref(false)
 const selectedConversationId = ref('')
@@ -57,7 +58,7 @@ const loadMessages = ()=>{
     }
 }
 
-watch(selectedConversationId, (newValue)=>{
+watch(selectedConversationId, ()=>{
     newMessage.value = ''
     conversationToken.value = ''
     loadMessages()
@@ -69,6 +70,7 @@ const sendMessage = async ()=>{
         newMessage.to = selectedConversationId.value
         try {
             await conversationsStore.sendMessage(newMessage)
+            newMessage.value = ''
         } catch (error) {
             console.log(error)
         }
@@ -82,6 +84,10 @@ const isMessageMine = (message: IMessage)=>{
 const copyToClipboard = ()=>{
     navigator.clipboard.writeText(conversationToken.value)
 }
+
+socket.on('newMessage', (newMessage: IMessage)=>{
+    conversationsStore.addNewMessage(newMessage)
+})
 
 </script>
 
@@ -100,11 +106,12 @@ const copyToClipboard = ()=>{
     float: left;
     padding: 20px 20px 0px 20px;
     display: grid;
+    grid-template-rows: repeat(13, 1fr);
     height: 100vh;
 }
 
 .home .content .topNav{
-    grid-row: 1;
+    grid-row: 1/2;
     border-bottom: 1px solid gray;
     display: flex;
     align-items: center;
@@ -112,12 +119,12 @@ const copyToClipboard = ()=>{
 }
 
 .home .content .messagesList{
-    grid-row: 2/10;
+    grid-row: 2/12;
     overflow-y: scroll;
 }
 
 .home .content form{
-    grid-row: 11/12;
+    grid-row: 12/14;
     display: flex;
     column-gap: 5px;
     align-items: center;

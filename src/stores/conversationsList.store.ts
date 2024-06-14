@@ -43,13 +43,14 @@ export const useConversationsListStore = defineStore('conversationsListStore', {
 
     join(token:string, userId: string){
       return new Promise<void>(async (resolve, reject)=>{
-        socket.emit('joinConversation', token, userId, (error: any)=>{
+        socket.emit('joinConversation', token, userId, (error: any, conversation: IConversation)=>{
           if(error) {            
-            console.log(error)
             reject(error) 
           }else {
-            console.log('OKy')
-            resolve()}
+            console.log(conversation)
+            this.conversationList.push(new Conversation(conversation))
+            resolve()
+          }
         })
       })
     }

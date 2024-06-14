@@ -1,16 +1,21 @@
 <template>
     <div class="message" :class="{right: isRight, left: !isRight}">
         <Avatar class="userAvatar" icon="pi pi-user" size="large" shape="circle" />
-        <p>Lorem ipsum dolor sit amet consectetur adipisicing elit. Dolor vero exercitationem pariatur nam obcaecati aliquam iste commodi veritatis provident similique eligendi voluptatum tempora dolore, impedit itaque suscipit nihil excepturi tempore!</p>    
+        <p>{{ message.value }}</p>  
     </div>
 </template>
 
 <script setup lang="ts">
 import Avatar from 'primevue/avatar';
+import { CMessage } from '@/models/message.model';
 
 defineProps({
     isRight :{
         type: Boolean,
+        required: true
+    },
+    message :{
+        type: CMessage,
         required: true
     }
 })

@@ -32,13 +32,24 @@ export const useConversationsStore = defineStore('conversationsStore', {
             })
         },
 
-        sendMessage(message: IMessage): Promise<void> {
+        sendMessage(message: IMessage): Promise<IMessage> {
             return new Promise((resolve, reject)=>{
-                socket.emit('sendMessage', message, (error:any)=>{
+                socket.emit('sendMessage', message, (error:any, newMessage: IMessage)=>{
                     if(error) reject(error)
-                    else resolve()
+                    else {
+                        this.addNewMessage(newMessage)
+                        resolve(newMessage)
+                    }
                 })
             })
+        },
+
+        addNewMessage(newMessage: IMessage){
+            let index = 0
+            if(this.conversations.some((conversation)=>{
+                index++
+                return conversation._id === newMessage.to
+            })) this.conversations[index - 1].messages.push(newMessage)
         }
     },
     getters: {
