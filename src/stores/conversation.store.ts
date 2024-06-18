@@ -3,12 +3,11 @@ import { socket } from '../socket'
 import { Conversation } from "@/models/conversation.model";
 import ConversationService from "@/services/conversation.services";
 import type { IMessage } from "@/models/message.model";
-import { ref } from "vue";
 
 export const useConversationsStore = defineStore('conversationsStore', {
     state: ()=>{
         return {
-            conversations: ref<Conversation[]>([])
+            conversations: [] as Conversation[]
         }
     },
     actions: {

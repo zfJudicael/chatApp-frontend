@@ -14,7 +14,7 @@
         </div>
         <div class="joinConversation" @click="joinConvVisible= true">
             <span class="pi pi-plus-circle" style="font-size: 2.5rem;"></span>
-            <p>Joindre une conversation</p>
+            <p>Rejoindre une conversation</p>
         </div>
         <div class="conversationsList">
             <ConversationC v-for="conversation in conversationsListStore.getList" :conversation="conversation" 
@@ -38,7 +38,7 @@
             </div>
         </Dialog>
 
-        <Dialog v-model:visible="joinConvVisible" modal header="Joindre une conversation" :style="{ width: '25rem' }" :draggable="false" @hide="()=>{
+        <Dialog v-model:visible="joinConvVisible" modal header="Rejoindre une conversation" :style="{ width: '25rem' }" :draggable="false" @hide="()=>{
             conversationToken = ''
             conversationTokenError = false
         }">
@@ -47,7 +47,7 @@
                 <InlineMessage class="inlineMessage" v-if="conversationTokenError">{{ conversationTokenErrorMessage }}</InlineMessage>
             </div>
             <div id="DialogButton">
-                <Button type="button" class="create" label="Joindre" @click="joinConversation"></Button>
+                <Button type="button" class="create" label="Confirmer" @click="joinConversation"></Button>
                 <Button type="button" class="cancel" label="Annuler" severity="secondary" @click="joinConvVisible = false"></Button>
             </div>
         </Dialog>
@@ -68,7 +68,6 @@ import { Conversation, type IConversation } from '@/models/conversation.model';
 import { useConversationsListStore } from '@/stores/conversationsList.store';
 import { useConversationsStore } from '@/stores/conversation.store';
 import Textarea from 'primevue/textarea';
-import { socket } from '@/socket';
 
 const toast = useToast()
 const newConversation = reactive<IConversation>({
@@ -118,9 +117,9 @@ const handleConversationToken = ()=>{
 const createNewConversation = async ()=>{
     if(handleConversationName()){
         try {
-            if(authStore.user?._id){
-                await conversationsListStore.addList(newConversation)
-                toast.add({ severity: 'success', detail: 'Conversation créé avec succès', life: 6000 });
+            if(authStore.token && authStore.user?._id){
+                let newConversationName = await conversationsListStore.addList(authStore.token, newConversation)
+                toast.add({ severity: 'success', detail: `La conversation '${newConversationName}' est créée avec succès`, life: 6000 });
             }else{
                 await authStore.init()
                 authStore.redirect()
@@ -136,15 +135,24 @@ const joinConversation = async ()=>{
     if(handleConversationToken()){
         try {
             if(authStore.user?._id){
-                console.log(conversationToken.value, authStore.user?._id)
-                await conversationsListStore.join(conversationToken.value, authStore.user?._id)
-                toast.add({ severity: 'success', detail: 'Vous avez pu joindre la conversation avec succès', life: 6000 });
+                let newConversationName = await conversationsListStore.joinConversation(conversationToken.value, authStore.user?._id)
+                toast.add({ severity: 'success', detail: `Vous avez pu rejoindre la conversation '${newConversationName}' avec succès`, life: 6000 });
             }else{
                 await authStore.init()
                 authStore.redirect()
             }
-        } catch (error) {
-            toast.add({ severity: 'error', summary: "Vous n'avez pas pu joindre la conversation", detail: "Peut être que la clé n'est pas valide ou expirée", life: 6000 });
+        } catch (error: any) {
+            switch(error.message){
+                case 'CONVERSATION_NOT_FOUND':
+                    toast.add({ severity: 'error', summary: "Conversation non trouvée", detail: "Peut être qu'elle est déja supprimée ou n'a jamais existée", life: 6000 });
+                    break;
+                case 'USER_ALREADY_MEMBER_OF_THE_CONVERSATION':
+                    toast.add({ severity: 'info', summary: `Vous etes déjà membre de la conversation '${error.conversationName}'`, life: 6000 });
+                    break;
+                default :
+                    toast.add({ severity: 'error', summary: "Vous n'avez pas pu rejoindre cette conversation", detail: "Peut être que la clé n'est plus valide", life: 6000 });
+                    break;
+            }
         }
         joinConvVisible.value = false;
     }
@@ -156,7 +164,6 @@ const openConversation = async (conversation: Conversation)=>{
     } catch (error) {}
     emit('update:modelValue', conversation._id)
 }
-
 </script>
 
 <style>

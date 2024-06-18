@@ -1,13 +1,11 @@
 import { defineStore } from 'pinia';
 import { socket } from '@/socket';
-import { ref } from 'vue';
 import { Conversation, type IConversation } from '@/models/conversation.model';
-import { useAuthStore } from './auth.store';
 import ConversationService from '@/services/conversation.services';
 
 export const useConversationsListStore = defineStore('conversationsListStore', {
   state: ()=>({
-    conversationList: ref<Conversation[]>([])
+    conversationList: [] as Conversation[]
   }),
   actions: {
     async refreshList(){
@@ -18,38 +16,29 @@ export const useConversationsListStore = defineStore('conversationsListStore', {
       } catch (error) {}
     },
 
-    addList(conversation: IConversation){
-      return new Promise<void>(async (resolve, reject)=>{
-        try{
-          const result = await ConversationService.create(conversation)
-          this.conversationList.push(new Conversation(result))
-          resolve()
-        }catch(error){
-          reject(error)
-        }
-      })
-    },
-
-    joinConversation(conversationToken: string): Promise<void>{
-      return new Promise(async (resolve, reject)=>{
-        try {
-          const result = await ConversationService.joinConversation(conversationToken) 
-          resolve()       
-        } catch (error) {
-          reject(error)
-        }
-      })
-    },
-
-    join(token:string, userId: string){
-      return new Promise<void>(async (resolve, reject)=>{
-        socket.emit('joinConversation', token, userId, (error: any, conversation: IConversation)=>{
+    addList(token:string , newConversation: IConversation){
+      return new Promise<string>(async (resolve, reject)=>{
+        socket.emit('createConversation', token, newConversation.name, (error: any, conversation: IConversation)=>{
           if(error) {            
             reject(error) 
           }else {
-            console.log(conversation)
-            this.conversationList.push(new Conversation(conversation))
-            resolve()
+            this.conversationList.unshift(new Conversation(conversation))
+            resolve(conversation.name)
+          }
+        })
+      })
+    },
+
+    joinConversation(token:string, userId: string){
+      return new Promise<string>(async (resolve, reject)=>{
+        socket.emit('joinConversation', token, userId, (error: any, conversation: IConversation)=>{
+          if(error) {           
+            let conversationName = '';
+            if(conversation) conversationName = conversation.name
+            reject({message: error, conversationName}) 
+          }else {
+            this.conversationList.unshift(new Conversation(conversation))
+            resolve(conversation.name)
           }
         })
       })
